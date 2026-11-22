@@ -2,6 +2,9 @@
 <html lang="fr"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>SALIOU LEBOU BUSINESS</title>
+ <link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0f3d22">
+<link rel="apple-touch-icon" href="Icon-192.png"> 
 <style>
 :root{--g:#14532d;--g2:#166534;--g3:#dcfce7;--bg:#ffffff;--card:#fff;--tx:#0a1f12;--mu:#1f3a2a;--bd:#3f6b52;--rd:#b91c1c;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 html{scroll-padding-top:env(safe-area-inset-top,0px)}
@@ -335,4 +338,5 @@ function syCopy(){const t=$("#sy_sql");t.select();try{navigator.clipboard.writeT
 if(syOn()){SYS=SY.dirty?"pend":"ok";syUI();syPull(true)}
 setInterval(syTick,30000);document.addEventListener("visibilitychange",()=>{if(document.visibilityState=="visible")syTick()});addEventListener("online",syTick);
 render();
+  if ("serviceWorker" in navigator) addEventListener("load", () => { navigator.serviceWorker.register("sw.js"); });
 </script></body></html>
