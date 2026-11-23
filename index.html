@@ -247,7 +247,7 @@ window.PFL=PF.concat(PC);const fld=f=>`<div><label>${f[1]}</label><input id="p_$
 m.innerHTML=`<div class="bar"><h1>Paramètres</h1></div><div class="card"><h3 style="margin-top:0">Informations du logiciel et des documents</h3><div class="fg">${PF.map(fld).join("")}<div><label>Logo</label><img src="${logo()}" class="pi" style="width:120px;height:120px"><input type="file" accept="image/*" onchange="loadLogo(this)"></div></div></div>
 <div class="card"><h3 style="margin-top:0">Cachets</h3><div class="fg"><div><label>Cachet société</label><select id="p_c_show1">${opts(["Oui","Non"],pp("c_show1"))}</select></div><div><label>Cachet 2 (« ${e(pp("c_txt"))} »)</label><select id="p_c_show2">${opts(["Si payé","Toujours","Jamais"],pp("c_show2"))}</select></div><div><label>Couleur des cachets</label><input id="p_c_col" type="color" value="${e(pp("c_col"))}" style="height:42px;padding:2px"></div>${PC.map(fld).join("")}${img(1)}${img(2)}</div><p style="color:var(--mu);font-weight:400">« Si payé » : le cachet 2 apparaît sur les factures entièrement payées.</p></div>
 ${syCard()}
-<p><button class="btn" onclick="pRead();save();render();note('Paramètres enregistrés.')">Enregistrer</button> <button class="btn o" onclick="exp()">Exporter les données</button> <button class="btn r" onclick="ask('Effacer TOUTES les données ?',()=>{DB=JSON.parse(JSON.stringify(D));CU=DB.users[0];try{sessionStorage.removeItem('slbu')}catch(x){}save();render()})">Tout réinitialiser</button></p><p style="color:var(--mu)">Les données sont enregistrées dans ce navigateur. Exportez-les régulièrement pour les sauvegarder.</p>`}};
+<p><button class="btn" onclick="pRead();save();render();note('Paramètres enregistrés.')">Enregistrer</button> <button class="btn o" onclick="exp()">Exporter les données</button> <button class="btn o" onclick="$('#imp').click()">Importer un fichier JSON</button><input id="imp" type="file" accept=".json,application/json" style="display:none" onchange="imp(this)"> <button class="btn r" onclick="ask('Effacer TOUTES les données ?',()=>{DB=JSON.parse(JSON.stringify(D));CU=DB.users[0];try{sessionStorage.removeItem('slbu')}catch(x){}save();render()})">Tout réinitialiser</button></p><p style="color:var(--mu)">Les données sont enregistrées dans ce navigateur. Exportez-les régulièrement pour les sauvegarder.</p>`}};
 function pRead(){(window.PFL||[]).concat([["c_show1"],["c_show2"],["c_col"]]).forEach(f=>{const x=$("#p_"+f[0]);if(x)DB.params[f[0]]=x.value})}
 function loadCch(i,k){pRead();if(i.files[0])shrink(i.files[0],500,d=>{DB.params["c_img"+k]=d;save();render()})}
 const upd=()=>{cartUI();pgrid()};
@@ -261,6 +261,15 @@ if(fa){d.paid=vpaid(tot(d),mode);cart.forEach(l=>pn(l.p).stock-=l.q)}
 d.num=nextNum(t);DB.docs.push(d);cart=[];VC="";VA="";VR=0;if(!fa){cur=t;VT="facture"}save();render();prt(d.id)}
 function restock(){const p=pn($("#rp").value),q=num($("#rq").value);if(!p||q<=0){note("Choisissez un produit et une quantité.");return}const pa=num($("#rc").value);p.stock+=q;p.pa=pa;DB.achats.push({id:uid(),date:$("#rd").value,four:$("#rf_").value,p:p.id,q,pa});save();render()}
 function exp(){const a=document.createElement("a");a.href="data:application/json;charset=utf-8,"+encodeURIComponent(JSON.stringify(DB));a.download=String(DB.params.nom||"sauvegarde").toLowerCase().replace(/[^a-z0-9]+/g,"-")+"-sauvegarde.json";a.click()}
+function imp(i){const f=i.files[0];i.value="";if(!f)return;const r=new FileReader();
+r.onload=()=>{let d;try{d=JSON.parse(r.result)}catch(x){note("Fichier invalide : ce n’est pas un JSON valide.");return}
+if(!d||typeof d!="object"||Array.isArray(d)||(!Array.isArray(d.docs)&&!Array.isArray(d.produits)&&!Array.isArray(d.clients))){note("Ce fichier n’est pas une sauvegarde de ce logiciel.");return}
+ask("Remplacer toutes les données actuelles par celles du fichier « "+f.name+" » ? Une copie de sécurité des données actuelles sera gardée dans le navigateur.",()=>{
+try{localStorage.setItem("slb_backup",JSON.stringify(DB))}catch(x){}
+DB=d;for(const k in D)if(!DB[k]||typeof DB[k]!=typeof D[k])DB[k]=JSON.parse(JSON.stringify(D[k]));
+CU=DB.users.find(u=>CU&&u.id==CU.id)||null;if(!CU&&!needLogin())CU=DB.users.find(u=>u.role=="Admin")||DB.users[0];
+cart=[];cur="dash";save();render();note("Données importées.")})};
+r.readAsText(f)}
 
 /* ===== Synchronisation Supabase ===== */
 const SQLSB=`create table if not exists public.slb_cloud (
